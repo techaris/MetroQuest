@@ -11,6 +11,7 @@ namespace UI.Hub
         [SerializeField] private TextMeshProUGUI titleText;
         [SerializeField] private Image thumbnailImage;
         [SerializeField] private Button button;
+        [SerializeField] private int buttonClickSfxIndex = 1;
 
         private SceneEntryData _boundData;
 
@@ -32,12 +33,18 @@ namespace UI.Hub
             if (thumbnailImage != null)
                 thumbnailImage.sprite = data.sceneDisplay;
 
-            if (button != null)
             {
                 button.interactable = true;
                 button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(PlayButtonClickSfx);
                 button.onClick.AddListener(() => onClick?.Invoke(_boundData));
             }
+        }
+
+        private void PlayButtonClickSfx()
+        {
+            if (Core.Managers.AudioManager.Instance != null)
+                Core.Managers.AudioManager.Instance.PlaySFX(buttonClickSfxIndex);
         }
     }
 }

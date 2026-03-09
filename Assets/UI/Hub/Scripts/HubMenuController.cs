@@ -12,9 +12,13 @@ namespace UI.Hub
         [SerializeField] private GameButton gameButtonPrefab;
         [SerializeField, Tooltip("If true, uses pre-placed GameButtons in content instead of spawning.")]
         private bool usePrespawned = false;
+        [SerializeField] private int bgMusicIndex = 0;
 
         private void Start()
         {
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayMusic(bgMusicIndex);
+
             Populate();
         }
 

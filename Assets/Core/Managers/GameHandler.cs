@@ -9,8 +9,10 @@ namespace Core.Managers
         public static GameHandler Instance { get; private set; }
 
         [SerializeField] private List<SceneEntryData> availableScenes = new List<SceneEntryData>();
+        [SerializeField] private bool oneClickResult = false;
 
         public IReadOnlyList<SceneEntryData> AvailableScenes => availableScenes;
+        public bool OneClickResult => oneClickResult;
 
         private void Awake()
         {
