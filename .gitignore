@@ -77,3 +77,4 @@ crashlytics-build.properties
 # Cursor-created markdown files (README.md excluded)
 .cursor/**/*.md
 AGENTS.md
+PROJECT_FLOW_DOCUMENT.md
