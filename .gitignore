@@ -74,7 +74,12 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Cursor-created markdown files (README.md excluded)
+# Markdown: only repo-root README.md and PROJECT_FLOW_DOCUMENT.md are tracked.
+# (*.md ignores all; ! re-includes only those basenames; then re-ignore third-party READMEs.)
+*.md
+!README.md
+!PROJECT_FLOW_DOCUMENT.md
+# All Markdown under Assets/ stays ignored (third-party READMEs, etc.)
+Assets/**/*.md
+# Cursor agent markdown (not project docs)
 .cursor/**/*.md
-AGENTS.md
-PROJECT_FLOW_DOCUMENT.md

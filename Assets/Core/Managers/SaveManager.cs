@@ -4,10 +4,22 @@ using Core.Data;
 
 namespace Core.Managers
 {
+    /// <summary>
+    /// Persists <see cref="SaveData"/> as JSON under Application.persistentDataPath/save.json.
+    /// Milestone 0 on-disk format: saveVersion 1 with currency fields only.
+    /// Milestone 1 (MetroQuest): saveVersion 2 with stars and nested progression/hub/cafe/maintenance/map sections.
+    /// </summary>
     public class SaveManager : MonoBehaviour
     {
-        private const int CURRENT_SAVE_VERSION = 1;
-        private const string SAVE_FILE_NAME = "save.json";
+        /// <summary>Legacy saves before explicit versioning.</summary>
+        private const int SaveVersionLegacy = 0;
+        /// <summary>Milestone 0: softCurrency, hardCurrency (and optional stars defaulting to 0).</summary>
+        private const int SaveVersionMilestone0 = 1;
+        /// <summary>Milestone 1: full MetroQuest save tree.</summary>
+        private const int SaveVersionMilestone1 = 2;
+
+        private const int CurrentSaveVersion = SaveVersionMilestone1;
+        private const string SaveFileName = "save.json";
 
         public static SaveManager Instance { get; private set; }
 
@@ -40,7 +52,7 @@ namespace Core.Managers
 
         public string GetSaveFilePath()
         {
-            return Path.Combine(Application.persistentDataPath, SAVE_FILE_NAME);
+            return Path.Combine(Application.persistentDataPath, SaveFileName);
         }
 
         public void Load()
@@ -73,17 +85,21 @@ namespace Core.Managers
                     return;
                 }
 
-                if (debugLogs)
-                    Debug.Log($"[SaveManager] Loaded: v{currentSaveData.saveVersion} soft={currentSaveData.softCurrency} hard={currentSaveData.hardCurrency}");
+                // Milestone 1: nested objects/lists are null if absent from JSON — fill before migration or gameplay.
+                SaveData.EnsureIntegrity(currentSaveData);
 
-                if (currentSaveData.saveVersion < CURRENT_SAVE_VERSION)
+                if (debugLogs)
+                    Debug.Log($"[SaveManager] Loaded: v{currentSaveData.saveVersion} soft={currentSaveData.softCurrency} hard={currentSaveData.hardCurrency} stars={currentSaveData.stars}");
+
+                if (currentSaveData.saveVersion < CurrentSaveVersion)
                 {
                     MigrateSaveData(currentSaveData);
+                    SaveData.EnsureIntegrity(currentSaveData);
                     Save();
                 }
 
                 if (debugLogs)
-                    Debug.Log($"[SaveManager] Loaded OK. v{currentSaveData.saveVersion} soft:{currentSaveData.softCurrency} hard:{currentSaveData.hardCurrency}");
+                    Debug.Log($"[SaveManager] Loaded OK. v{currentSaveData.saveVersion} soft:{currentSaveData.softCurrency} hard:{currentSaveData.hardCurrency} stars:{currentSaveData.stars}");
             }
             catch (System.Exception e)
             {
@@ -97,9 +113,9 @@ namespace Core.Managers
         public void Save()
         {
             if (currentSaveData == null)
-            {
                 currentSaveData = CreateDefaultSaveData();
-            }
+
+            SaveData.EnsureIntegrity(currentSaveData);
 
             try
             {
@@ -128,31 +144,57 @@ namespace Core.Managers
 
         private SaveData CreateDefaultSaveData()
         {
-            return new SaveData
+            var data = new SaveData
             {
-                saveVersion = CURRENT_SAVE_VERSION,
+                saveVersion = CurrentSaveVersion,
                 softCurrency = 0,
-                hardCurrency = 0
+                hardCurrency = 0,
+                stars = 0,
+                progression = ProgressionSaveData.CreateDefault(),
+                hub = HubSaveData.CreateDefault(),
+                cafe = CafeSaveData.CreateDefault(),
+                maintenance = MaintenanceSaveData.CreateDefault(),
+                map = MapSaveData.CreateDefault()
             };
+            SaveData.EnsureIntegrity(data);
+            return data;
         }
 
         private void MigrateSaveData(SaveData data)
         {
             if (debugLogs)
-                Debug.Log($"[SaveManager] Migrating save from v{data.saveVersion} to v{CURRENT_SAVE_VERSION}");
+                Debug.Log($"[SaveManager] Migrating save from v{data.saveVersion} to v{CurrentSaveVersion}");
 
-            while (data.saveVersion < CURRENT_SAVE_VERSION)
+            while (data.saveVersion < CurrentSaveVersion)
             {
                 switch (data.saveVersion)
                 {
-                    case 0:
-                        data.saveVersion = 1;
+                    case SaveVersionLegacy:
+                        data.saveVersion = SaveVersionMilestone0;
                         break;
+
+                    case SaveVersionMilestone0:
+                        MigrateMilestone0ToMilestone1(data);
+                        data.saveVersion = SaveVersionMilestone1;
+                        break;
+
                     default:
-                        data.saveVersion = CURRENT_SAVE_VERSION;
+                        if (debugLogs)
+                            Debug.LogWarning($"[SaveManager] Unknown saveVersion {data.saveVersion}; clamping to v{CurrentSaveVersion}.");
+                        data.saveVersion = CurrentSaveVersion;
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Milestone 0 → Milestone 1: preserve currency (and stars if present); all nested sections come from <see cref="SaveData.EnsureIntegrity"/>.
+        /// </summary>
+        private static void MigrateMilestone0ToMilestone1(SaveData data)
+        {
+            if (data.stars < 0)
+                data.stars = 0;
+            SaveData.EnsureIntegrity(data);
         }
     }
 }

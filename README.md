@@ -1,306 +1,198 @@
-# ModularMiniGameFramework_m0
+# ModularMiniGameFramework_m0 — MetroQuest SP (Milestone 1)
 
-Architecture validation milestone for a scalable **multi–mini-game Unity framework** designed to support future expansion including backend integration, login systems, GPS features, and additional mini-games.
+Unity project for a **modular multi–mini-game framework**, evolved from the original **Milestone 0** architecture validation into **MetroQuest SP Milestone 1**: expanded persistence, progression plumbing, session/reward pipeline, and config-ready ScriptableObjects—while keeping the **dummy mini-game** playable end-to-end.
 
-This milestone demonstrates **clean modular architecture**, persistent economy systems, and isolated mini-game modules communicating with shared core services.
-
-The focus of this submission is **structure, separation of concerns, and scalability**, not visual polish.
+Focus: **structure, separation of concerns, save versioning, and scalable mini-game entry** (not final MetroQuest content).
 
 ---
 
-# Project Overview
+## Milestone 1 — What Was Added (Summary)
 
-The project contains a **Hub scene** and a **Dummy MiniGame module** connected through shared core systems.
+| Area | Change |
+|------|--------|
+| **Save** | `SaveData` v2: `stars`, nested `ProgressionSaveData`, `HubSaveData`, `CafeSaveData`, `MaintenanceSaveData`, `MapSaveData`; migration from legacy v0/v1 |
+| **Managers** | `ProgressionManager`, `RewardManager`, `MiniGameSessionManager` (all DDOL singletons on AppRoot) |
+| **Session / rewards** | `MiniGameResultData`; dummy flow uses `MiniGameSessionManager` + per-click `RewardManager.GrantCoins` |
+| **Constants / enums** | `Core.Constants` (`MiniGameIds`, `HubAreaIds`, `StationIds`); `RewardType`, `UpgradeType` enums |
+| **Config** | `MiniGameDefinitionSO`, `HubAreaDefinitionSO`, `StationDefinitionSO` under `Assets/Configs/ScriptableObjects/` |
+| **Folders** | `Gameplay/…`, `UI/Screens/…`, `Art/…`, `Audio/Music|SFX`, `Core/Systems`, `Core/Constants`, etc. (see structure below) |
+| **AppRoot** | Ensures all core components via `EnsureComponent<T>()` |
+| **Git** | `.gitignore` extended for Cursor-generated docs (e.g. `PROJECT_FLOW_DOCUMENT.md`); no `.gitkeep` policy |
 
-Core systems are responsible for:
-
-* Save persistence
-* Currency/economy state
-* Data versioning
-* Cross-scene system availability
-
-Mini-games operate as **isolated modules** that interact with the core systems through controlled interfaces rather than tightly coupled scene dependencies.
-
-This architecture allows new mini-games to be added without modifying core systems.
+**Still lightweight in M1:** ScriptableObject **assets** are optional until you wire the hub; `hub` / `cafe` / `maintenance` / `map` save slices are **persisted** but most **gameplay systems** do not write them yet except progression lists via `ProgressionManager`.
 
 ---
 
-# Project Structure
+## Project Overview
+
+- **Hub** scene — menu, economy UI, launch mini-game.
+- **DummyGameplay** scene — **QuickClicker** (clicker + result panel + return to Hub).
+- **AppRoot** — single persistent bootstrap with managers and (on prefab) **AudioManager** + AudioSources.
+
+Mini-games should use **RewardManager** / **MiniGameSessionManager** rather than touching save JSON directly.
+
+---
+
+## Project Structure (Milestone 1)
 
 ```
 Assets
-│
-├── Core
-│   ├── Managers
-│   │    EconomyManager.cs
-│   │    SaveManager.cs
-│   │
-│   ├── Data
-│   │    SaveData.cs
-│   │
-│   └── Utilities
-│
-├── MiniGames
-│   └── DummyMiniGame
-│        DummyMiniGameController.cs
-│
-├── UI
-│   ├── Hub
-│   │    HubUIController.cs
-│   │
-│   └── Shared
-│        CurrencyDisplay.cs
-│
-├── Scenes
-│   Hub.unity
-│   DummyMiniGame.unity
-│
-└── Configs
-```
-
-### Core
-
-Contains shared systems used by the entire application.
-
-Responsibilities include:
-
-* persistent economy state
-* save/load management
-* shared data models
-
-### MiniGames
-
-Each mini-game exists as an isolated module containing its own scripts and scene.
-
-Adding a new mini-game requires only creating a new module inside this directory.
-
-### UI
-
-Contains hub UI controllers and shared UI components such as currency display bindings.
-
-### Scenes
-
-Contains application scenes.
-
-* **Hub** – main menu and economy display
-* **DummyMiniGame** – validation mini-game module
-
----
-
-# Scenes
-
-## Hub Scene
-
-Displays the current currency state and provides access to the mini-game.
-
-UI includes:
-
-* Soft currency counter
-* Secondary currency counter
-* Play Dummy MiniGame button
-* Reset Save debug button
-
-Currency counters are displayed within the **device safe area** to support different screen types.
-
----
-
-## Dummy MiniGame Scene
-
-A minimal mini-game module used to validate the architecture.
-
-Flow:
-
-1. Player presses **Complete MiniGame**
-2. +10 soft currency is awarded
-3. Result panel displays earned reward
-4. Player returns to the Hub
-
-The mini-game does not manipulate save files directly and instead communicates with shared core systems.
-
----
-
-# Core Systems
-
-## EconomyManager
-
-The single source of truth for all currency values.
-
-Responsibilities:
-
-* managing currency state
-* providing methods for currency modification
-* triggering save operations when economy changes
-* notifying UI systems when currency updates
-
-Example operations include:
-
-```
-AddSoftCurrency(int amount)
-GetSoftCurrency()
-GetHardCurrency()
-```
-
-All currency changes flow through this manager to maintain consistency.
-
----
-
-## SaveManager
-
-Handles persistence of game data using a JSON file.
-
-Responsibilities:
-
-* loading save data at application start
-* writing save data to disk
-* resetting save data
-* managing save versioning
-
-The save file is stored using:
-
-```
-Application.persistentDataPath
-```
-
-Example location (Android):
-
-```
-/storage/emulated/0/Android/data/<package>/files/save.json
+├── Art/                    (UI, Characters, Environment, Icons, VFX + legacy Sprites)
+├── Audio/                  (clips; Music/, SFX/ for organization)
+├── Configs/
+│   └── ScriptableObjects/  (MiniGameDefinitionSO, HubAreaDefinitionSO, StationDefinitionSO — namespace Core.Config)
+├── Core/
+│   ├── Constants/          (MiniGameIds, HubAreaIds, StationIds)
+│   ├── Data/               (SaveData, nested save types, MiniGameResultData, SceneEntryData, …)
+│   ├── Enums/              (CurrencyType, RewardType, UpgradeType)
+│   ├── Interfaces/       (IMiniGame — optional contract)
+│   ├── Managers/           (AppRoot, SaveManager, EconomyManager, GameHandler, AudioManager,
+│   │                        ProgressionManager, RewardManager, MiniGameSessionManager)
+│   ├── Services/           (SceneLoader)
+│   ├── Systems/            (placeholder for future systems)
+│   ├── Utilities/
+│   └── Prefabs/            (AppRoot prefab)
+├── Gameplay/               (Common, Hub, Map, Cafe, Maintenance — scripts/prefabs/SO placeholders)
+├── MiniGames/
+│   └── DummyMiniGame/      (QuickClicker + UI)
+├── UI/
+│   ├── Hub/                (HubMenuController, GameButton, HubTopBarController, …)
+│   ├── Screens/            (Hub, Map, Results, Popups — placeholders)
+│   └── Shared/             (CurrencyDisplay, RewardPopup, …)
+├── Scenes/                 (Hub, DummyGameplay, …)
+├── Resources/
+├── StreamingAssets/
+└── ExtractedAssets/        (third-party; trim for Android size if needed)
 ```
 
 ---
 
-# Save Data Structure
+## Scenes
 
-Save data is stored as JSON and contains a **saveVersion field** to support future migrations.
+| Scene | Role |
+|-------|------|
+| **Hub** | Main menu; **AppRoot**; currency display; buttons to open **DummyGameplay** (ensure **scene name** in **GameHandler** / **HubTopBarController** matches build: **`DummyGameplay`**, not legacy `DummyMiniGame`). |
+| **DummyGameplay** | **QuickClicker**; spawns **AppRoot** prefab if missing (direct play). |
 
-Example:
+**Build Settings:** Include **Hub** and **DummyGameplay** in the correct order for your entry flow.
+
+---
+
+## Core Systems (Milestone 1)
+
+### AppRoot
+- Singleton, **DontDestroyOnLoad**
+- Adds if missing: **GameHandler**, **SceneLoader**, **SaveManager**, **EconomyManager**, **ProgressionManager**, **RewardManager**, **MiniGameSessionManager**
+- Prefab often also has **AudioManager** + **AudioSources** (not added by code)
+
+### SaveManager
+- `Application.persistentDataPath` + **`save.json`**
+- **Current save version: 2** (Milestone 1); migrates **0 → 1 → 2**
+- **`SaveData.EnsureIntegrity`** after load/save so nested lists/objects are never null
+
+### EconomyManager
+- Soft/hard currency; syncs with `SaveData`; **`OnCurrencyChanged`**
+- Unchanged public API; works with expanded save (SaveManager writes full JSON)
+
+### ProgressionManager
+- Reads/writes **`SaveData.progression`** (unlocked areas, stations, mini-games, completed mini-games)
+- Saves after mutations; **`OnProgressionChanged`**
+
+### RewardManager
+- **`GrantCoins`** → EconomyManager (soft currency)
+- **`GrantStars`** → `SaveData.stars` + Save
+- **`GrantMiniGameRewards(MiniGameResultData)`**
+
+### MiniGameSessionManager
+- **`StartSession(miniGameId, levelIndex)`** / **`EndSession(result)`**
+- **`EndSession`** calls **RewardManager** for non-zero coin/star fields in result
+- Events: **`OnSessionStarted`**, **`OnSessionEnded`**
+
+### GameHandler
+- Hub **scene catalog** (`SceneEntryData` list); **`OneClickResult`** for QuickClicker dev mode
+- Not responsible for progression
+
+### SceneLoader
+- **`LoadSceneByName(string)`**
+
+---
+
+## Save Data (v2) — Sketch
 
 ```json
 {
-  "saveVersion": 1,
-  "softCurrency": 110,
-  "hardCurrency": 50
+  "saveVersion": 2,
+  "softCurrency": 0,
+  "hardCurrency": 0,
+  "stars": 0,
+  "progression": { "unlockedAreas": [], "unlockedStations": [], "unlockedMiniGames": [], "completedMiniGames": [] },
+  "hub": { "unlockedHubZones": [], "constructedAreas": [], "stationVisualLevel": 0 },
+  "cafe": { ... },
+  "maintenance": { ... },
+  "map": { "currentStationId": "", "unlockedStationIds": [] }
 }
 ```
 
-This structure allows safe upgrades if the save format evolves in future versions.
+Legacy files with only currency migrate automatically.
 
 ---
 
-# Save Version Migration Strategy
+## Dummy Mini-Game Flow (QuickClicker)
 
-The `saveVersion` field allows controlled data migrations when the save format changes.
+1. **Start:** `MiniGameSessionManager.StartSession(MiniGameIds.QuickTap, 0)`
+2. **Each click:** `RewardManager.GrantCoins(rewardPerClick)` (live wallet + save, same feel as before)
+3. **Result / leave:** `EndSession` with **`MiniGameResultData`** (`coinsEarned` / `starsEarned` = **0** so session does not double-grant; **`score`** = run total for listeners)
+4. **Return to Hub:** `SceneLoader`
+5. **OnDestroy:** ends Quick Tap session if scene unloads (avoids stuck DDOL session)
 
-Example approach:
-
-1. Load save file
-2. Check `saveVersion`
-3. If older than current version:
-
-   * run migration steps
-   * upgrade data format
-4. Save upgraded version
-
-Pseudo-flow:
-
-```
-if (saveVersion < CURRENT_VERSION)
-{
-    RunMigration();
-}
-```
-
-This approach ensures backward compatibility when introducing new fields or systems.
+Subscribe to **`OnSessionEnded`** elsewhere when you want **ProgressionManager** updates (not wired automatically in M1).
 
 ---
 
-# MiniGame → Core Communication
+## ScriptableObjects (Config Base)
 
-Mini-games communicate with shared systems through **central services** rather than modifying save data directly.
-
-Example flow:
-
-```
-MiniGameController
-      ↓
-EconomyManager
-      ↓
-SaveManager
-      ↓
-JSON save file
-```
-
-This separation ensures:
-
-* mini-games remain isolated modules
-* core systems remain centralized
-* future backend sync can be implemented without modifying mini-game logic
+Create assets: **Right-click → Create → MetroQuest → …**  
+Suggested folders: `Assets/Configs/ScriptableObjects/MiniGames/`, `HubAreas/`, `Stations/` (or one `MetroQuest/` folder).  
+**Runtime wiring to hub is optional** until you replace/extend **GameHandler** / **HubMenuController**.
 
 ---
 
-# Android Build Instructions
+## Android Build
 
-1. Open the project in **Unity 2022 LTS**
-2. Open **File → Build Settings**
-3. Select **Android**
-4. Ensure scenes are included in build order:
+1. Unity **2022 LTS** (or your project version)
+2. **File → Build Settings → Android**
+3. Scenes: **Hub**, **DummyGameplay** (and others as needed)
+4. **Player Settings:** package name, min SDK, IL2CPP/Mono per team standard
+5. **Build** / **Build And Run**
 
-```
-Hub
-DummyMiniGame
-```
-
-5. Switch platform if necessary
-6. Click **Build**
-
-The generated APK demonstrates the full architecture.
+**Checks:** `persistentDataPath` save path; trim unused **ExtractedAssets** if APK size or plugin conflicts appear.
 
 ---
 
-# Validation Steps
+## Validation Checklist (Quick)
 
-To verify functionality:
-
-1. Launch application
-2. Observe currency counters in Hub
-3. Tap **Play Dummy MiniGame**
-4. Tap **Complete MiniGame (+10)**
-5. Return to Hub
-6. Confirm currency increased
-7. Close the application completely
-8. Reopen the application
-9. Confirm currency persists
-10. Use **Reset Save** button if needed
+1. Play **Hub** → currency loads  
+2. Open **DummyGameplay** → click → coins increase  
+3. Result / **Return to Hub** → currency persisted  
+4. Inspect **`save.json`** → `saveVersion` **2**, nested sections present  
+5. (Optional) Call **ProgressionManager** unlock from debug → lists appear in save  
+6. Android smoke test on device  
 
 ---
 
-# Future Expansion
+## Future Expansion
 
-The architecture supports future features such as:
-
-* multiple mini-games
-* backend save sync
-* authentication systems
-* live economy balancing
-* analytics
-* GPS/location-based gameplay
-
-Adding a new mini-game requires only:
-
-1. creating a new module in `MiniGames`
-2. creating a scene
-3. using the shared core services
-
-No modifications to existing mini-games are required.
+- Wire **MiniGameDefinitionSO** (and friends) into hub / map UI  
+- **Hub / cafe / maintenance / map** managers reading their save slices  
+- Backend sync, analytics, more mini-games under **MiniGames/** or **Gameplay/**
 
 ---
 
-# Milestone Tag
+## Milestone Tags
 
-```
-m0
-```
-
-This tag represents the **initial architecture validation milestone**.
+- **m0** — Initial architecture validation (hub + dummy + economy + save v1)  
+- **Milestone 1 (MetroQuest SP)** — Expanded save, progression/reward/session pipeline, SO config base, QuickClicker on new stack  
 
 ---
+
+*README updated for MetroQuest SP Milestone 1.*

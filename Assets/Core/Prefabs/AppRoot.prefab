@@ -10,10 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 8972978827946061414}
   - component: {fileID: 4137213959560153157}
-  - component: {fileID: 7850587063124037872}
   - component: {fileID: 2051929603381920816}
-  - component: {fileID: 3648960247324900919}
   - component: {fileID: 6782532899489479628}
+  - component: {fileID: 6186671086043593618}
+  - component: {fileID: 7850587063124037872}
+  - component: {fileID: 3648960247324900919}
   - component: {fileID: 1438282043716293661}
   - component: {fileID: 7700440413113910464}
   - component: {fileID: 8075203129593063637}
@@ -51,6 +52,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc9cfcd9c0d690f4a9e6cea25ecdb6bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &2051929603381920816
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434580775049963506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4475ba9e5433d4944a225fad655e56ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6782532899489479628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434580775049963506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02e7c6d442514074f9b2cfa08855526a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &6186671086043593618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434580775049963506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54b1d79c714b5f941a26b08d8eda3e94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7850587063124037872
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -67,18 +104,7 @@ MonoBehaviour:
   - sceneName: DummyGameplay
     displayName: Quick Clicker
     sceneDisplay: {fileID: 0}
---- !u!114 &2051929603381920816
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 434580775049963506}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4475ba9e5433d4944a225fad655e56ba, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  oneClickResult: 0
 --- !u!114 &3648960247324900919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,18 +122,30 @@ MonoBehaviour:
     saveVersion: 0
     softCurrency: 0
     hardCurrency: 0
---- !u!114 &6782532899489479628
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 434580775049963506}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02e7c6d442514074f9b2cfa08855526a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+    stars: 0
+    progression:
+      unlockedAreas: []
+      unlockedStations: []
+      unlockedMiniGames: []
+      completedMiniGames: []
+    hub:
+      unlockedHubZones: []
+      constructedAreas: []
+      stationVisualLevel: 0
+    cafe:
+      highestUnlockedLevel: 0
+      highestCompletedLevel: 0
+      milkUpgradeLevel: 0
+      fillingUpgradeLevel: 0
+      toppingUpgradeLevel: 0
+      tutorialCompleted: 0
+    maintenance:
+      highestUnlockedLevel: 0
+      highestCompletedLevel: 0
+      tutorialCompleted: 0
+    map:
+      currentStationId: 
+      unlockedStationIds: []
 --- !u!114 &1438282043716293661
 MonoBehaviour:
   m_ObjectHideFlags: 0

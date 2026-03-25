@@ -18,17 +18,19 @@ namespace Core.Managers
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            if (GetComponent<GameHandler>() == null)
-                gameObject.AddComponent<GameHandler>();
+            EnsureComponent<GameHandler>();
+            EnsureComponent<SceneLoader>();
+            EnsureComponent<SaveManager>();
+            EnsureComponent<EconomyManager>();
+            EnsureComponent<ProgressionManager>();
+            EnsureComponent<RewardManager>();
+            EnsureComponent<MiniGameSessionManager>();
+        }
 
-            if (GetComponent<SceneLoader>() == null)
-                gameObject.AddComponent<SceneLoader>();
-
-            if (GetComponent<SaveManager>() == null)
-                gameObject.AddComponent<SaveManager>();
-
-            if (GetComponent<EconomyManager>() == null)
-                gameObject.AddComponent<EconomyManager>();
+        private void EnsureComponent<T>() where T : Component
+        {
+            if (GetComponent<T>() == null)
+                gameObject.AddComponent<T>();
         }
     }
 }
