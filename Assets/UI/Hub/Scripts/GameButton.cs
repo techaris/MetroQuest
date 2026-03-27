@@ -8,8 +8,9 @@ namespace UI.Hub
 {
     public class GameButton : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI titleText;
         [SerializeField] private Image thumbnailImage;
+        [SerializeField] private TextMeshProUGUI titleText;
+        [SerializeField] private TextMeshProUGUI descriptionText;
         [SerializeField] private Button button;
         [SerializeField] private int buttonClickSfxIndex = 1;
 
@@ -22,13 +23,17 @@ namespace UI.Hub
             if (data == null)
             {
                 if (titleText != null) titleText.text = string.Empty;
+                if (descriptionText != null) descriptionText.text = string.Empty;
                 if (thumbnailImage != null) thumbnailImage.sprite = null;
                 if (button != null) button.interactable = false;
                 return;
             }
 
             if (titleText != null)
-                titleText.text = data.displayName ?? string.Empty;
+                titleText.text = data.title ?? string.Empty;
+
+            if (descriptionText != null)
+                descriptionText.text = data.description ?? string.Empty;
 
             if (thumbnailImage != null)
                 thumbnailImage.sprite = data.sceneDisplay;
